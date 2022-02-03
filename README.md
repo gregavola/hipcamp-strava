@@ -1,2 +1,3 @@
 # hipcamp-strava
-A simple site that allows folks to authenticate their Strava account and have their activities posted to Slack.
+
+A simple NextJS app the cross posts workouts to our dedicated slack channel
