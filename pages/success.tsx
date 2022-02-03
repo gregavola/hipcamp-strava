@@ -16,7 +16,7 @@ const Success: NextPage = () => {
 
         <p className={styles.description}>
           You have a linked your Strava account to Hipcamp Run Club! Now, every
-          ride will be shared the the{" "}
+          ride or run will be shared the the{" "}
           <span className="text-primary">#running-biking-club</span> Channel in
           Slack.
         </p>
