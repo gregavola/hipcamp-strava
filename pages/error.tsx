@@ -5,7 +5,7 @@ import Button from "react-bootstrap/Button";
 
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faGoogle } from "@fortawesome/free-brands-svg-icons";
-import { getSession } from "next-auth/react";
+import { getSession, signIn } from "next-auth/react";
 
 export default function ErrorPage() {
   const router = useRouter();
@@ -32,7 +32,9 @@ export default function ErrorPage() {
               className="strava-color d-flex align-items-center"
               size="lg"
               onClick={() => {
-                router.push("/api/strava");
+                signIn("google", {
+                  callbackUrl: `${process.env.NEXT_PUBLIC_BASE_URL}/strava`,
+                });
               }}
             >
               <div className="mr-5">
