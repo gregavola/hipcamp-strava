@@ -2,7 +2,6 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import strava from "strava-v3";
 import { checkTokenExpire } from "../../utils/checkTokenExpire";
 import { crudActities } from "../../utils/crudActivities";
-import { connectDB } from "../../utils/db";
 import { getUser } from "../../utils/getUser";
 import { handleRefreshToken } from "../../utils/handleRefreshToken";
 import { sendToSlack } from "../../utils/sendToSlack";
@@ -22,8 +21,6 @@ export default async function handler(
     ) {
       const userId = responseBody.owner_id;
       let userData = (await getUser(userId)) as unknown as UserProps;
-
-      console.log(userData);
 
       if (!userData) {
         console.log(`No Data on ${userId} found`);
@@ -50,26 +47,31 @@ export default async function handler(
         });
 
         if (activityData) {
-          await crudActities({
-            activityId: activityData.id,
-            name: activityData.name,
-            type: activityData.type,
-            distance: activityData.distance,
-            startDate: activityData.start_date,
-            utcOffset: activityData.utc_offset,
-            user: {
-              userId,
-              name: userData.name,
-              userName: userData.userName,
-              avatar: userData.avatar,
-            },
-            elapsedTime: activityData.elapsed_time,
-          });
+          if (activityData.type == "Run" || activityData.type == "Bike") {
+            await crudActities({
+              activityId: activityData.id,
+              name: activityData.name,
+              type: activityData.type,
+              distance: activityData.distance,
+              startDate: activityData.start_date,
+              utcOffset: activityData.utc_offset,
+              user: {
+                userId,
+                name: userData.name,
+                userName: userData.userName,
+                avatar: userData.avatar,
+              },
+              elapsedTime: activityData.elapsed_time,
+            });
 
-          await sendToSlack({
-            activityId,
-            summaryPolyline: activityData.map?.summary_polyline,
-          });
+            await sendToSlack({
+              activityId,
+              activityType: activityData.type,
+              mapOnly: userData.mapOnly,
+              postActivity: userData.postActivity,
+              summaryPolyline: activityData.map?.summary_polyline,
+            });
+          }
         }
       }
     }

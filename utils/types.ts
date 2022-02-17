@@ -1,11 +1,23 @@
 export interface UserProps {
   name: string;
   userId: number;
+  accountId?: string;
   userName: string;
   accessToken: string;
   refreshToken: string;
   expiresAt: number;
   avatar: string;
+  postActivity?: number;
+  mapOnly?: number;
+}
+
+export interface GoogleProps {
+  googleName: string;
+  googleAvatar: string;
+  email: string;
+  accountId: string;
+  postActivity?: number;
+  mapOnly?: number;
 }
 
 export interface MiniUser {
@@ -17,7 +29,10 @@ export interface MiniUser {
 
 export interface SlackProps {
   activityId: number;
+  activityType: string;
   summaryPolyline?: string;
+  postActivity: number;
+  mapOnly: number;
 }
 
 export interface RefreshTokenProps {
@@ -25,6 +40,20 @@ export interface RefreshTokenProps {
   accessToken?: string;
   refreshToken: string;
   expiresAt?: number;
+}
+
+export interface UserUpdateProps {
+  accountId: string;
+  postActivity?: number;
+  mapOnly?: number;
+}
+
+export interface FullStravaUser extends GoogleProps {
+  avatar?: string;
+  name?: string;
+  userName?: string;
+  accessToken?: string;
+  userId?: number;
 }
 
 export interface ActivityProps {

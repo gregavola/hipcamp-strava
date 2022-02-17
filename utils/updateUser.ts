@@ -1,31 +1,20 @@
 import { connectDB } from "./db";
-import { UserProps } from "./types";
+import { UserUpdateProps } from "./types";
 
-export async function addUser({
+export async function updateUser({
   accountId,
-  name,
-  userId,
-  accessToken,
-  refreshToken,
-  expiresAt,
-  avatar,
-  userName,
-}: UserProps) {
+  postActivity,
+  mapOnly,
+}: UserUpdateProps) {
   const db = await connectDB();
   const userCollection = await db.collection("users");
 
   const userQuery = { accountId };
   const userUpdateQuery = {
-    $setOnInsert: { created_at: new Date() },
     $set: {
-      name,
-      userId,
-      userName,
+      ...(postActivity && { postActivity: parseInt(postActivity.toString()) }),
+      ...(mapOnly && { mapOnly: parseInt(mapOnly.toString()) }),
       updatedAt: new Date(),
-      accessToken,
-      refreshToken,
-      expiresAt,
-      avatar,
     },
   };
 
@@ -36,5 +25,5 @@ export async function addUser({
     options
   );
 
-  return response;
+  return { status: "ok" };
 }

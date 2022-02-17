@@ -14,7 +14,13 @@ const generateMessage = (activity: ActivityProps) => {
   )} mile* ${activity.type} - ${activity.name.trim()}!`;
 };
 
-export async function sendToSlack({ activityId, summaryPolyline }: SlackProps) {
+export async function sendToSlack({
+  activityId,
+  summaryPolyline,
+  activityType,
+  postActivity,
+  mapOnly,
+}: SlackProps) {
   let message = "";
   const db = await connectDB();
 
@@ -35,7 +41,7 @@ export async function sendToSlack({ activityId, summaryPolyline }: SlackProps) {
       let attachments = [];
       let blocks = [];
 
-      if (summaryPolyline != "") {
+      if (summaryPolyline) {
         attachments.push({
           title: "Map",
           image_url: getStaticMapUrl(summaryPolyline),
@@ -58,11 +64,29 @@ export async function sendToSlack({ activityId, summaryPolyline }: SlackProps) {
         },
       });
 
+      if (mapOnly == 2 && !summaryPolyline) {
+        return;
+      }
+
+      if (postActivity == 1) {
+        return;
+      }
+
+      if (postActivity == 3 && activityType == "Bike") {
+        return;
+      }
+
+      if (postActivity == 4 && activityType == "Run") {
+        return;
+      }
+
       const slackResponse = await webApi.chat.postMessage({
+        text: "New Strava Post!",
         channel: process.env.SLACK_CHANNEL_ID || "",
         attachments: attachments,
         blocks,
       });
+
       const response = await slackSendsCollection.insertOne({
         activityId,
         message,

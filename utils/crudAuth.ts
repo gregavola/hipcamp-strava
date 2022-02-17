@@ -1,31 +1,23 @@
 import { connectDB } from "./db";
-import { UserProps } from "./types";
+import { GoogleProps } from "./types";
 
-export async function addUser({
+export async function addGoogleUser({
+  googleName,
   accountId,
-  name,
-  userId,
-  accessToken,
-  refreshToken,
-  expiresAt,
-  avatar,
-  userName,
-}: UserProps) {
+  email,
+  googleAvatar,
+}: GoogleProps) {
   const db = await connectDB();
   const userCollection = await db.collection("users");
 
   const userQuery = { accountId };
   const userUpdateQuery = {
-    $setOnInsert: { created_at: new Date() },
+    $setOnInsert: { created_at: new Date(), postActivity: 1 },
     $set: {
-      name,
-      userId,
-      userName,
+      googleName,
+      email,
+      googleAvatar,
       updatedAt: new Date(),
-      accessToken,
-      refreshToken,
-      expiresAt,
-      avatar,
     },
   };
 
