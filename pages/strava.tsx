@@ -163,9 +163,7 @@ export default function StravaPage({ sessionData, googleUser }) {
               </div>
               <hr />
               <div className="d-flex justify-content-between align-items-center mt-3">
-                <div style={{ marginRight: 10 }}>
-                  Share Rides & Runs Without a Map?
-                </div>
+                <div style={{ marginRight: 10 }}>Share Peloton Activites?</div>
                 <Dropdown>
                   <Dropdown.Toggle variant="outline-primary">
                     {mapOnly === 1 ? "Yes" : "No"}
