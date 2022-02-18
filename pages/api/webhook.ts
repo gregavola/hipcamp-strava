@@ -5,6 +5,7 @@ import { crudActities } from "../../utils/crudActivities";
 import { getUser } from "../../utils/getUser";
 import { handleRefreshToken } from "../../utils/handleRefreshToken";
 import { sendToSlack } from "../../utils/sendToSlack";
+import { addWebhookResponse } from "../../utils/storeWebhook";
 import { StravaWebhook, UserProps } from "../../utils/types";
 
 export default async function handler(
@@ -20,6 +21,10 @@ export default async function handler(
       responseBody.object_type == "activity"
     ) {
       const userId = responseBody.owner_id;
+      const activityId = responseBody.object_id;
+
+      await addWebhookResponse({ userId, activityId, jsonData: responseBody });
+
       let userData = (await getUser(userId)) as unknown as UserProps;
 
       if (!userData) {
@@ -37,8 +42,6 @@ export default async function handler(
           console.log(`UserData`);
           console.log(userData);
         }
-
-        const activityId = responseBody.object_id;
 
         console.log(`querying ${userId}`);
         activityData = await strava.activities.get({
