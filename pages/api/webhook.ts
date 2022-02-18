@@ -5,6 +5,7 @@ import { crudActities } from "../../utils/crudActivities";
 import { getUser } from "../../utils/getUser";
 import { handleRefreshToken } from "../../utils/handleRefreshToken";
 import { sendToSlack } from "../../utils/sendToSlack";
+import { addStravaResponse } from "../../utils/storeStrava";
 import { addWebhookResponse } from "../../utils/storeWebhook";
 import { StravaWebhook, UserProps } from "../../utils/types";
 
@@ -48,6 +49,8 @@ export default async function handler(
           access_token: userData?.accessToken,
           id: activityId,
         });
+
+        await addStravaResponse({ userId, activityId, jsonData: activityData });
 
         if (activityData) {
           if (activityData.type == "Run" || activityData.type == "Bike") {
