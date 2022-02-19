@@ -2,6 +2,7 @@ import { connectDB } from "./db";
 import { ActivityProps, SlackProps } from "./types";
 import { WebClient } from "@slack/web-api";
 import { getStaticMapUrl } from "./getStaticMapUrl";
+import { checkSlackPost } from "./checkSlackPost";
 
 const distanceConverter = (distance: number) => {
   const kmValue = distance / 1000;
@@ -29,6 +30,13 @@ export async function sendToSlack({
 
   if (!activity) {
     throw new Error(`Activity Not Found ${activityId}`);
+  }
+
+  const shouldSendToSlack = await checkSlackPost({ activityId });
+
+  if (!shouldSendToSlack) {
+    console.log(`${activityId} has already been sent!`);
+    return;
   }
 
   const webApi = new WebClient(process.env.SLACK_BOT_TOKEN);
