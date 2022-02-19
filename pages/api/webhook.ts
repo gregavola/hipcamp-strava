@@ -53,7 +53,7 @@ export default async function handler(
         await addStravaResponse({ userId, activityId, jsonData: activityData });
 
         if (activityData) {
-          if (activityData.type == "Run" || activityData.type == "Bike") {
+          if (activityData.type == "Run" || activityData.type == "Ride") {
             await crudActities({
               activityId: activityData.id,
               name: activityData.name,
