@@ -12,7 +12,7 @@ export async function addGoogleUser({
 
   const userQuery = { accountId };
   const userUpdateQuery = {
-    $setOnInsert: { created_at: new Date(), postActivity: 1 },
+    $setOnInsert: { created_at: new Date(), postActivity: 1, mapOnly: 1 },
     $set: {
       googleName,
       email,
