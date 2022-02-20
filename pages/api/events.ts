@@ -48,6 +48,10 @@ export default async function handler(
       res.json({ text: `${eventType} is not supported` });
     }
   } else {
-    res.json({ status: "OK", challenge: req.body.challenge });
+    res.json({
+      status: "OK",
+      challenge: req.body.challenge,
+      text: "Nothing to see here",
+    });
   }
 }
