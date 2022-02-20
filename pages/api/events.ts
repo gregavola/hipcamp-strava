@@ -43,15 +43,19 @@ export default async function handler(
         });
 
         res.json(jsonResponse);
+      } else {
+        res.json({
+          text: `${text}: ${text.toLowerCase().indexOf("leaderboard")}`,
+        });
       }
     } else {
-      res.json({ message: `${eventType} is not supported` });
+      res.json({ text: `${eventType} is not supported` });
     }
   } else {
     res.json({
       status: "OK",
       challenge: req.body.challenge,
-      message: "Nothing to see here",
+      text: "Nothing to see here",
     });
   }
 }
