@@ -2,6 +2,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { getLeaderboard } from "../../utils/getLeaderboard";
 import { prettyTime } from "../../utils/prettyTime";
 import { LeaderboardUsers } from "../../utils/types";
+import { WebClient } from "@slack/web-api";
 
 export default async function handler(
   req: NextApiRequest,
@@ -10,6 +11,8 @@ export default async function handler(
   if (req.body.event) {
     const eventType = req.body.event.type;
     const text = req.body.event.text;
+
+    const webApi = new WebClient(process.env.SLACK_BOT_TOKEN);
 
     if (eventType == "app_mention") {
       if (text.toLowerCase().indexOf("leaderboard") !== -1) {
@@ -42,14 +45,21 @@ export default async function handler(
           });
         });
 
-        res.json(jsonResponse);
+        const slackResponse = await webApi.chat.postMessage({
+          text: "Current Leaderboard",
+          unfurl_links: false,
+          channel: process.env.SLACK_CHANNEL_ID || "",
+          blocks: jsonResponse.blocks,
+        });
+
+        res.json({ status: "OK", slackResponse });
       } else {
         res.json({
-          text: `${text}: ${text.toLowerCase().indexOf("leaderboard")}`,
+          status: "OK",
         });
       }
     } else {
-      res.json({ text: `${eventType} is not supported` });
+      res.json({ status: "OK", text: `${eventType} is not supported` });
     }
   } else {
     res.json({
