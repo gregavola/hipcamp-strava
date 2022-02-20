@@ -27,6 +27,13 @@ export interface MiniUser {
   avatar: string;
 }
 
+export interface LeaderboardUsers {
+  user: MiniUser;
+  totalDistance: number;
+  totalTime: number;
+  totalActivities: number;
+}
+
 export interface SlackProps {
   activityId: number;
   activityType: string;

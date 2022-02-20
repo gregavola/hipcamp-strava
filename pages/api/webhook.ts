@@ -13,6 +13,8 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
+  const { performance } = require("perf_hooks");
+  let startInit, endInit;
   let activityData = null;
   const responseBody = req.body as StravaWebhook;
 
@@ -45,12 +47,24 @@ export default async function handler(
         }
 
         console.log(`querying ${userId}`);
+
+        startInit = performance.now();
+
         activityData = await strava.activities.get({
           access_token: userData?.accessToken,
           id: activityId,
         });
 
-        await addStravaResponse({ userId, activityId, jsonData: activityData });
+        endInit = performance.now();
+
+        const timeTaken = parseFloat((endInit - startInit).toFixed(2));
+
+        await addStravaResponse({
+          userId,
+          activityId,
+          jsonData: activityData,
+          timeTaken,
+        });
 
         if (activityData) {
           if (activityData.type == "Run" || activityData.type == "Ride") {

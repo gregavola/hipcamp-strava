@@ -3,11 +3,7 @@ import { ActivityProps, SlackProps } from "./types";
 import { WebClient } from "@slack/web-api";
 import { getStaticMapUrl } from "./getStaticMapUrl";
 import { checkSlackPost } from "./checkSlackPost";
-
-const distanceConverter = (distance: number) => {
-  const kmValue = distance / 1000;
-  return (kmValue * 0.621371).toFixed(2);
-};
+import { distanceConverter } from "./distanceConverter";
 
 const generateMessage = (activity: ActivityProps) => {
   return `*${activity.user.name}* just completed a *${distanceConverter(
@@ -23,7 +19,10 @@ export async function sendToSlack({
   mapOnly,
 }: SlackProps) {
   let message = "";
+  let startInit, endInit;
   const db = await connectDB();
+
+  const { performance } = require("perf_hooks");
 
   const activityCollection = await db.collection("activities");
   const activity = await activityCollection.findOne({ activityId });
@@ -88,12 +87,19 @@ export async function sendToSlack({
         return;
       }
 
+      startInit = performance.now();
+
       const slackResponse = await webApi.chat.postMessage({
         text: "New Strava Post!",
+        unfurl_links: false,
         channel: process.env.SLACK_CHANNEL_ID || "",
         attachments: attachments,
         blocks,
       });
+
+      endInit = performance.now();
+
+      const timeTaken = parseFloat((endInit - startInit).toFixed(2));
 
       const response = await slackSendsCollection.insertOne({
         activityId,
@@ -102,6 +108,7 @@ export async function sendToSlack({
         slackResponse,
         errorMessage: null,
         status: 200,
+        timeTaken,
         createdAt: new Date(),
       });
     } else {
