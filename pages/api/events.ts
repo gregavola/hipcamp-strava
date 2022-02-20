@@ -7,9 +7,9 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
-  if (req.body.type) {
-    const eventType = req.body.type;
-    const text = req.body.text;
+  if (req.body.event) {
+    const eventType = req.body.event.type;
+    const text = req.body.event.text;
 
     if (eventType == "app_mention") {
       if (text.toLowerCase().indexOf("leaderboard") !== -1) {
@@ -45,13 +45,13 @@ export default async function handler(
         res.json(jsonResponse);
       }
     } else {
-      res.json({ text: `${eventType} is not supported` });
+      res.json({ message: `${eventType} is not supported` });
     }
   } else {
     res.json({
       status: "OK",
       challenge: req.body.challenge,
-      text: "Nothing to see here",
+      message: "Nothing to see here",
     });
   }
 }
