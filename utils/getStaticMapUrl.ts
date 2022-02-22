@@ -16,7 +16,10 @@ export function getStaticMapUrl(summary_polyline?: string) {
     properties: { stroke: "#fc4c02" },
   };
 
-  const lineFeatureSimple = simplify(actualGeoJSON, 0.0001);
+  const tolerance =
+    actualGeoJSON.geometry.coordinates.length >= 400 ? 0.001 : 0.0001;
+
+  const lineFeatureSimple = simplify(actualGeoJSON, tolerance);
 
   let width = 375;
   let height = 375;
@@ -24,6 +27,8 @@ export function getStaticMapUrl(summary_polyline?: string) {
 
   const encodedOverlays = encodeGeoJsonOverlay(lineFeatureSimple);
   const staticImageUrl = `https://api.mapbox.com/styles/v1/mapbox/${baseMapStyle}/static/${encodedOverlays}/auto/${width}x${height}@2x?access_token=${process.env.MAPBOX_API_KEY}&attribution=false&logo=false`;
+
+  console.log(staticImageUrl);
 
   return staticImageUrl;
 }
