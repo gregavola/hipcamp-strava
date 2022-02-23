@@ -17,7 +17,7 @@ export default async function handler(
     redirect_uri: process.env.STRAVA_REDIRECT_URI || "",
   });
 
-  const scope = "read_all,activity:read_all";
+  const scope = "activity:read";
 
   const oauthLoginUrl = await strava.oauth.getRequestAccessURL({
     scope,
