@@ -44,14 +44,14 @@ export default async function handler(
           });
         });
 
-        // const slackResponse = await webApi.chat.postMessage({
-        //   text: "Current User List",
-        //   unfurl_links: false,
-        //   channel: process.env.SLACK_CHANNEL_ID || "",
-        //   blocks: jsonResponse.blocks,
-        // });
+        const slackResponse = await webApi.chat.postMessage({
+          text: "Current User List",
+          unfurl_links: false,
+          channel: process.env.SLACK_CHANNEL_ID || "",
+          blocks: jsonResponse.blocks,
+        });
 
-        res.json({ status: "OK", jsonResponse });
+        res.json({ status: "OK", slackResponse });
       } else if (text.toLowerCase().indexOf("leaderboard") !== -1) {
         const workouts = await getLeaderboard({
           age: 30,
