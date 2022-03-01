@@ -17,7 +17,11 @@ export function getStaticMapUrl(summary_polyline?: string) {
   };
 
   const tolerance =
-    actualGeoJSON.geometry.coordinates.length >= 400 ? 0.001 : 0.0001;
+    actualGeoJSON.geometry.coordinates.length >= 500
+      ? 0.01
+      : actualGeoJSON.geometry.coordinates.length >= 400
+      ? 0.001
+      : 0.0001;
 
   const lineFeatureSimple = simplify(actualGeoJSON, tolerance);
 
