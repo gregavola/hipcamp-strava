@@ -15,15 +15,19 @@ a {
   box-sizing: border-box;
 }
 
+a.strava-color,
 button.strava-color {
   background-color: #fc4c02 !important;
   color: #fff;
   border-color: #e64500;
 }
 
+a.strava-color:active,
+a.strava-color:hover,
 button.strava-color:active,
 button.strava-color:hover {
   background-color: #e64500;
+  color: #fff;
 }
 
 .vertical-center {

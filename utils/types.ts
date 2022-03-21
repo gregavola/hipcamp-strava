@@ -1,3 +1,35 @@
+export interface Activities {
+  totalWorkouts?: number;
+  totalTime?: number;
+  totalDistance?: number;
+  date?: string;
+  items?: Workout[];
+}
+
+export interface Stats {
+  totalDistance: number;
+  totalTime: number;
+  totalWorkouts: number;
+}
+
+export interface ActivityStats {
+  workouts: Activities[];
+  stats: {
+    allTime: Stats;
+    last30Days: Stats;
+  };
+}
+
+export interface Workout {
+  activityId: number;
+  created_at: string;
+  elapsedTime: number;
+  name: string;
+  distance: number;
+  type: string;
+  user: MiniUser;
+}
+
 export interface UserProps {
   name: string;
   userId: number;
@@ -9,6 +41,7 @@ export interface UserProps {
   avatar: string;
   postActivity?: number;
   mapOnly?: number;
+  slackUsername?: string;
 }
 
 export interface GoogleProps {
@@ -40,6 +73,7 @@ export interface SlackProps {
   summaryPolyline?: string;
   postActivity: number;
   mapOnly: number;
+  slackUsername: string;
 }
 
 export interface RefreshTokenProps {
@@ -53,12 +87,14 @@ export interface UserUpdateProps {
   accountId: string;
   postActivity?: number;
   mapOnly?: number;
+  slackUsername?: string;
 }
 
 export interface FullStravaUser extends GoogleProps {
   avatar?: string;
   name?: string;
   userName?: string;
+  slackUsername?: string;
   accessToken?: string;
   userId?: number;
 }

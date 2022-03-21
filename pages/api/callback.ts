@@ -9,8 +9,6 @@ export default async function handler(
 ) {
   const session = await getSession({ req });
 
-  console.log(session);
-
   if (session) {
     const accountId = session.userId as string;
 

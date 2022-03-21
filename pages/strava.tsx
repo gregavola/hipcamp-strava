@@ -1,30 +1,47 @@
-import type { NextPage } from "next";
 import Head from "next/head";
-import Image from "next/image";
 import { useRouter } from "next/router";
 import styles from "../styles/Home.module.css";
 import Button from "react-bootstrap/Button";
 import Navbar from "react-bootstrap/Navbar";
 import Dropdown from "react-bootstrap/Dropdown";
 import Alert from "react-bootstrap/Alert";
+import Form from "react-bootstrap/Form";
+import Spinner from "react-bootstrap/Spinner";
 import axios from "axios";
 
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faGoogle, faStrava } from "@fortawesome/free-brands-svg-icons";
+import { faStrava } from "@fortawesome/free-brands-svg-icons";
 
-import { useSession, signIn, signOut, getSession } from "next-auth/react";
+import { useSession, signOut, getSession } from "next-auth/react";
 import { useEffect, useState } from "react";
-import { FullStravaUser, GoogleProps } from "../utils/types";
+import {
+  Activities,
+  ActivityStats,
+  FullStravaUser,
+  GoogleProps,
+  Workout,
+} from "../utils/types";
 import { addGoogleUser } from "../utils/crudAuth";
 import { getGoogleUser } from "../utils/getGoogleUser";
-import { updateUser } from "../utils/updateUser";
+import { getAPIActivities } from "../utils/http";
+import WorkoutCard from "../components/WorkoutCard";
+import { parseISO, format } from "date-fns";
+import StatsGrid from "../components/StatsGrid";
 
 export default function StravaPage({ sessionData, googleUser }) {
   const router = useRouter();
-  const { data: session, status } = useSession();
   const [postActivity, setPostActivity] = useState(1);
+  const [isSuccessUserSave, setIsSuccessUserSave] = useState(null);
   const [mapOnly, setMapOnly] = useState(1);
+  const [slackUsername, setSlackUsername] = useState("");
   const [hasStravaConnected, setHasStavaConnected] = useState(false);
+  const [activityStats, setActivityStats] = useState<ActivityStats>({
+    workouts: [],
+    stats: null,
+  });
+  const [isLoadingActivityStats, setIsLoadingActivityStats] = useState(true);
+  const [isSavingUser, setIsSavingUser] = useState(false);
+  const [isError, setIsError] = useState(null);
 
   const postActivitiesMap = {
     1: "Don't Share",
@@ -41,57 +58,108 @@ export default function StravaPage({ sessionData, googleUser }) {
     if (googleUserData) {
       setPostActivity(googleUserData.postActivity);
       setMapOnly(googleUserData.mapOnly);
+      setSlackUsername(googleUserData.slackUsername || "");
       setHasStavaConnected(googleUserData.accessToken ? true : false);
+      getActivites();
     }
   }, []);
 
+  const isValidUsername = (value: string) => {
+    const re = /^(?:@)([A-Za-z0-9_]){1,15}$/;
+    return re.test(value);
+  };
+
+  const updateSlack = async () => {
+    setIsError(false);
+    setIsSavingUser(true);
+    if (isValidUsername(slackUsername)) {
+      try {
+        const response = await axios.post(`/api/update`, { slackUsername });
+        setIsSavingUser(false);
+        setIsSuccessUserSave("Great! Your username has been updated.");
+        setTimeout(() => {
+          setIsSuccessUserSave(null);
+        }, 3000);
+      } catch (err) {
+        setIsSavingUser(false);
+        setIsError("Something went wrong, please try again.");
+        console.log(err);
+      }
+    } else {
+      setIsSavingUser(false);
+      setIsError(
+        `${slackUsername} is not valid slack username. Please try again.`
+      );
+    }
+  };
+
+  const handleTextChange = (e) => {
+    setSlackUsername(e.target.value);
+  };
+
   const handleChange = async (e) => {
+    const oldValuePost = postActivity;
     setPostActivity(e);
+    setIsError(false);
 
     try {
       const response = await axios.post(`/api/update`, { postActivity: e });
-      console.log(response);
     } catch (err) {
+      setPostActivity(oldValuePost);
+      setIsError("Something went wrong, please try again.");
       console.log(err);
+    }
+  };
+
+  const getActivites = async () => {
+    try {
+      const data = await getAPIActivities();
+      setIsLoadingActivityStats(false);
+      setActivityStats(data);
+    } catch (err) {
+      console.error(err);
     }
   };
 
   const disconnectStrava = async () => {
     setHasStavaConnected(false);
+    setIsError(false);
 
     try {
       const response = await axios.post(`/api/disconnect`);
-      console.log(response);
     } catch (err) {
       setHasStavaConnected(true);
+      setIsError("Something went wrong, please try again.");
       console.log(err);
     }
   };
 
   const handleMapChange = async (e) => {
+    const oldValue = mapOnly;
     setMapOnly(e);
+    setIsError(false);
     try {
       const response = await axios.post(`/api/update`, { mapOnly: e });
-      console.log(response);
     } catch (err) {
+      setMapOnly(oldValue);
       console.log(err);
+      setIsError("Something went wrong, please try again.");
     }
   };
 
   return (
-    <div className={styles.container}>
+    <div>
       <Head>
         <title>Hipcamp Strava - Account</title>
         <meta name="description" content="Generated by create next app" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
-      <Navbar>
-        <div className="container justify-content-between">
-          <div className="font-weight-bold">Hipcamp Strava</div>
+      <Navbar bg="light" expand="lg">
+        <div className="container justify-content-between align-item-center">
+          <h3 className="fw-bold">Hipcamp Strava</h3>
           <div className="d-flex align-items-center justify-content-end">
             <Button
-              size="sm"
               variant="outline-primary"
               onClick={() => {
                 signOut({ callbackUrl: `${process.env.NEXT_PUBLIC_BASE_URL}` });
@@ -102,8 +170,6 @@ export default function StravaPage({ sessionData, googleUser }) {
           </div>
         </div>
       </Navbar>
-
-      <div className="d-flex justify-content-between"></div>
 
       <div className="container justify-content-center d-flex vertical-center">
         {router.query.error && (
@@ -136,57 +202,178 @@ export default function StravaPage({ sessionData, googleUser }) {
         )}
 
         <div className="container">
+          {isError && (
+            <Alert variant="danger" className="text-center">
+              {isError}
+            </Alert>
+          )}
+
+          {isSuccessUserSave && (
+            <Alert variant="success" className="text-center">
+              {isSuccessUserSave}
+            </Alert>
+          )}
+
           {hasStravaConnected && (
-            <div className="mt-3">
-              <h3>Settings</h3>
-              <div className="d-flex justify-content-between align-items-center">
-                <div style={{ marginRight: 10 }}>Activites to Share</div>
-                <Dropdown>
-                  <Dropdown.Toggle variant="outline-primary">
-                    {postActivitiesMap[postActivity]}
-                  </Dropdown.Toggle>
-                  <Dropdown.Menu>
-                    {Object.keys(postActivitiesMap).map((keyName, keyIndex) => {
-                      return (
-                        <Dropdown.Item
-                          key={keyIndex}
-                          onClick={() => {
-                            handleChange(keyName);
-                          }}
+            <>
+              <div className="mt-3">
+                <h3>Settings</h3>
+                <div className="">
+                  <div style={{ marginTop: 10, marginBottom: 10 }}>
+                    Slack Username
+                  </div>
+                  <Form>
+                    <Form.Group className="mb-3" controlId="formBasicEmail">
+                      <div className="d-flex">
+                        <Form.Control
+                          type="text"
+                          onChange={handleTextChange}
+                          style={{ marginRight: 10 }}
+                          placeholder="@username"
+                          defaultValue={slackUsername}
+                        />
+
+                        <Button
+                          variant="primary"
+                          disabled={isSavingUser}
+                          onClick={updateSlack}
                         >
-                          {postActivitiesMap[keyName]}
-                        </Dropdown.Item>
-                      );
-                    })}
-                  </Dropdown.Menu>
-                </Dropdown>
+                          Save
+                        </Button>
+                      </div>
+
+                      <Form.Text className="text-muted mt-2">
+                        When we share your post, it will mention you by
+                        username, not by full name.
+                      </Form.Text>
+                    </Form.Group>
+                  </Form>
+                </div>
               </div>
               <hr />
-              <div className="d-flex justify-content-between align-items-center mt-3">
-                <div style={{ marginRight: 10 }}>Share Peloton Activites?</div>
-                <Dropdown>
-                  <Dropdown.Toggle variant="outline-primary">
-                    {mapOnly === 1 ? "Yes" : "No"}
-                  </Dropdown.Toggle>
-                  <Dropdown.Menu>
-                    <Dropdown.Item
-                      onClick={() => {
-                        handleMapChange(1);
-                      }}
-                    >
-                      Yes
-                    </Dropdown.Item>
-                    <Dropdown.Item
-                      onClick={() => {
-                        handleMapChange(2);
-                      }}
-                    >
-                      No
-                    </Dropdown.Item>
-                  </Dropdown.Menu>
-                </Dropdown>
+              <div className="mt-3">
+                <div className="d-flex justify-content-between align-items-center">
+                  <div style={{ marginRight: 10 }}>Activites to Share</div>
+                  <Dropdown>
+                    <Dropdown.Toggle variant="outline-primary">
+                      {postActivitiesMap[postActivity]}
+                    </Dropdown.Toggle>
+                    <Dropdown.Menu>
+                      {Object.keys(postActivitiesMap).map(
+                        (keyName, keyIndex) => {
+                          return (
+                            <Dropdown.Item
+                              key={keyIndex}
+                              onClick={() => {
+                                handleChange(keyName);
+                              }}
+                            >
+                              {postActivitiesMap[keyName]}
+                            </Dropdown.Item>
+                          );
+                        }
+                      )}
+                    </Dropdown.Menu>
+                  </Dropdown>
+                </div>
+                <hr />
+                <div className="d-flex justify-content-between align-items-center mt-3">
+                  <div style={{ marginRight: 10 }}>
+                    Share Peloton Activites?
+                  </div>
+                  <Dropdown>
+                    <Dropdown.Toggle variant="outline-primary">
+                      {mapOnly === 1 ? "Yes" : "No"}
+                    </Dropdown.Toggle>
+                    <Dropdown.Menu>
+                      <Dropdown.Item
+                        onClick={() => {
+                          handleMapChange(1);
+                        }}
+                      >
+                        Yes
+                      </Dropdown.Item>
+                      <Dropdown.Item
+                        onClick={() => {
+                          handleMapChange(2);
+                        }}
+                      >
+                        No
+                      </Dropdown.Item>
+                    </Dropdown.Menu>
+                  </Dropdown>
+                </div>
               </div>
-            </div>
+              <hr />
+              <div className="mt-3">
+                <h3>Stats</h3>
+                {isLoadingActivityStats && (
+                  <div className="d-flex justify-content-center">
+                    <Spinner animation="border" />
+                  </div>
+                )}
+                {!isLoadingActivityStats &&
+                  activityStats &&
+                  activityStats.stats && (
+                    <>
+                      <StatsGrid
+                        stats={activityStats.stats.allTime}
+                        title={"All Time"}
+                      />
+                      <hr />
+                      <StatsGrid
+                        stats={activityStats.stats.last30Days}
+                        title={"Last 30 Days"}
+                      />
+                    </>
+                  )}
+              </div>
+
+              <hr />
+              <div className="mt-3">
+                <h3>Activites</h3>
+                {isLoadingActivityStats && (
+                  <div className="d-flex justify-content-center">
+                    <Spinner animation="border" />
+                  </div>
+                )}
+
+                {!isLoadingActivityStats &&
+                  activityStats?.workouts?.length === 0 && (
+                    <div className="d-flex justify-content-center">
+                      <strong>You have no workouts.</strong>
+                    </div>
+                  )}
+
+                {!isLoadingActivityStats &&
+                  activityStats.workouts.length !== 0 && (
+                    <>
+                      {activityStats.workouts.map(
+                        (item: Activities, keyIndex: number) => {
+                          return (
+                            <div className="mt-3" key={`date-${keyIndex}`}>
+                              <h6 className="text-uppercase mb-3">
+                                {format(
+                                  parseISO(item.date),
+                                  "iiii, LLL do yyyy"
+                                )}
+                              </h6>
+                              {item.items.map((workout: Workout) => {
+                                return (
+                                  <WorkoutCard
+                                    key={workout.activityId}
+                                    workout={workout}
+                                  />
+                                );
+                              })}
+                            </div>
+                          );
+                        }
+                      )}
+                    </>
+                  )}
+              </div>
+            </>
           )}
           {!hasStravaConnected && (
             <div className={styles.description}>

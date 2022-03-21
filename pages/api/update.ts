@@ -23,6 +23,13 @@ export default async function handler(
           });
 
           updateField = "postActivity";
+        } else if (req.body.slackUsername) {
+          response = await updateUser({
+            accountId,
+            slackUsername: req.body?.slackUsername,
+          });
+
+          updateField = "postActivity";
         } else if (req.body.mapOnly) {
           response = await updateUser({
             accountId,

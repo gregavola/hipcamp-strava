@@ -90,6 +90,7 @@ export default async function handler(
               mapOnly: userData.mapOnly,
               postActivity: userData.postActivity,
               summaryPolyline: activityData.map?.summary_polyline,
+              slackUsername: userData.slackUsername,
             });
           }
         }

@@ -23,7 +23,11 @@ export default async function handler(
           limit: 15,
         });
 
-        res.json({ status: 200, workouts });
+        res.json({
+          status: 200,
+          stats: workouts.stats,
+          workouts: workouts.workouts,
+        });
       } else {
         res.status(500).json({ error: `Could not find user ${accountId}` });
       }
@@ -31,6 +35,7 @@ export default async function handler(
       res.status(401).json({ error: "Not Authorized" });
     }
   } catch (err) {
+    console.error(err);
     res.status(500).json({ error: `Unknown Error` });
   }
 }

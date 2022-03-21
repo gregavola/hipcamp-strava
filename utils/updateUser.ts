@@ -5,6 +5,7 @@ export async function updateUser({
   accountId,
   postActivity,
   mapOnly,
+  slackUsername,
 }: UserUpdateProps) {
   const db = await connectDB();
   const userCollection = await db.collection("users");
@@ -14,6 +15,7 @@ export async function updateUser({
     $set: {
       ...(postActivity && { postActivity: parseInt(postActivity.toString()) }),
       ...(mapOnly && { mapOnly: parseInt(mapOnly.toString()) }),
+      ...(slackUsername && { slackUsername }),
       updatedAt: new Date(),
     },
   };

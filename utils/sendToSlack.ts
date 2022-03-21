@@ -5,8 +5,10 @@ import { getStaticMapUrl } from "./getStaticMapUrl";
 import { checkSlackPost } from "./checkSlackPost";
 import { distanceConverter } from "./distanceConverter";
 
-const generateMessage = (activity: ActivityProps) => {
-  return `*${activity.user.name}* just completed a *${distanceConverter(
+const generateMessage = (activity: ActivityProps, slackUsername: string) => {
+  const nameDisplayed = slackUsername || activity.user.name;
+
+  return `*${nameDisplayed}* just completed a *${distanceConverter(
     activity.distance
   )} mile* ${activity.type} - ${activity.name.trim()}!`;
 };
@@ -17,6 +19,7 @@ export async function sendToSlack({
   activityType,
   postActivity,
   mapOnly,
+  slackUsername,
 }: SlackProps) {
   let message = "";
   let startInit, endInit;
@@ -33,6 +36,7 @@ export async function sendToSlack({
 
   const shouldSendToSlack = await checkSlackPost({ activityId });
 
+  // do not send, if it's already been posted
   if (!shouldSendToSlack) {
     console.log(`${activityId} has already been sent!`);
     return;
@@ -43,7 +47,10 @@ export async function sendToSlack({
   const slackSendsCollection = await db.collection("slackSends");
 
   try {
-    message = await generateMessage(activity as unknown as ActivityProps);
+    message = await generateMessage(
+      activity as unknown as ActivityProps,
+      slackUsername
+    );
     if (message !== "") {
       let attachments = [];
       let blocks = [];
