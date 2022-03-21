@@ -6,6 +6,8 @@ import { checkSlackPost } from "./checkSlackPost";
 import { distanceConverter } from "./distanceConverter";
 
 const generateMessage = (activity: ActivityProps, slackUsername: string) => {
+  // is the username is not defined, fall back to the activity user name
+
   const nameDisplayed = slackUsername || activity.user.name;
 
   return `*${nameDisplayed}* just completed a *${distanceConverter(
