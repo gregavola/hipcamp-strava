@@ -352,10 +352,10 @@ export default function StravaPage({ sessionData, googleUser }) {
                         (item: Activities, keyIndex: number) => {
                           return (
                             <div className="mt-3" key={`date-${keyIndex}`}>
-                              <h6 className="text-uppercase mb-3">
+                              <h6 className="text-muted mb-3">
                                 {format(
                                   parseISO(item.date),
-                                  "iiii, LLL do yyyy"
+                                  "iiii, LLLL do yyyy"
                                 )}
                               </h6>
                               {item.items.map((workout: Workout) => {
