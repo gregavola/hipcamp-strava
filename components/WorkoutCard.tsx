@@ -20,7 +20,10 @@ function WorkoutCard({ workout }: DefaultProps) {
     <div className="card p-3 mb-3">
       <div className="d-flex align-items-center justify-content-between">
         <div className="d-flex align-items-center">
-          <div className="image" style={{ marginRight: 15, width: 45 }}>
+          <div
+            className="image d-flex justify-content-center"
+            style={{ marginRight: 15, width: 45 }}
+          >
             {workout.type === "Run" && (
               <FontAwesomeIcon
                 icon={faPropIconRunning}
