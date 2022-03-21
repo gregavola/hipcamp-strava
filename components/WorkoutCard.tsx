@@ -98,7 +98,7 @@ function WorkoutCard({ workout }: DefaultProps) {
             </div>
           </div>
         </div>
-        <div className="d-none d-lg-block d-xl-none">
+        <div className="d-none d-lg-block d-xl-block">
           <div className="workout d-flex align-items-center justify-content-center">
             <h3>{distanceConverter(workout.distance)}</h3>
             <span className="text-muted ml-1">mi</span>
