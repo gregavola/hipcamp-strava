@@ -27,6 +27,7 @@ import { getAPIActivities } from "../utils/http";
 import WorkoutCard from "../components/WorkoutCard";
 import { parseISO, format } from "date-fns";
 import StatsGrid from "../components/StatsGrid";
+import { updateUser } from "../utils/updateUser";
 
 export default function StravaPage({ sessionData, googleUser }) {
   const router = useRouter();
@@ -64,32 +65,42 @@ export default function StravaPage({ sessionData, googleUser }) {
     }
   }, []);
 
-  const isValidUsername = (value: string) => {
-    const re = /^(?:@)([A-Za-z0-9_]){1,15}$/;
-    return re.test(value);
-  };
-
-  const updateSlack = async () => {
+  const updateUsername = async () => {
     setIsError(false);
     setIsSavingUser(true);
-    if (isValidUsername(slackUsername)) {
-      try {
-        const response = await axios.post(`/api/update`, { slackUsername });
-        setIsSavingUser(false);
-        setIsSuccessUserSave("Great! Your username has been updated.");
-        setTimeout(() => {
-          setIsSuccessUserSave(null);
-        }, 3000);
-      } catch (err) {
-        setIsSavingUser(false);
-        setIsError("Something went wrong, please try again.");
-        console.log(err);
-      }
-    } else {
+    try {
+      const response = await axios.post(`/api/update`, { slackUsername });
       setIsSavingUser(false);
-      setIsError(
-        `${slackUsername} is not valid slack username. Please try again.`
-      );
+      setIsSuccessUserSave("Great! Your display name has been updated.");
+      setTimeout(() => {
+        setIsSuccessUserSave(null);
+      }, 3000);
+    } catch (err) {
+      setIsSavingUser(false);
+      setIsError("Something went wrong, please try again.");
+      console.log(err);
+    }
+  };
+
+  const removeUsername = async () => {
+    const oldSlackUsername = slackUsername;
+    setSlackUsername("");
+    setIsError(false);
+    setIsSavingUser(true);
+    try {
+      const response = await axios.post(`/api/update`, {
+        removeSlackUsername: true,
+      });
+      setIsSavingUser(false);
+      setIsSuccessUserSave("Great! Your custom display name has removed.");
+      setTimeout(() => {
+        setIsSuccessUserSave(null);
+      }, 3000);
+    } catch (err) {
+      setSlackUsername(oldSlackUsername);
+      setIsSavingUser(false);
+      setIsError("Something went wrong, please try again.");
+      console.log(err);
     }
   };
 
@@ -220,7 +231,7 @@ export default function StravaPage({ sessionData, googleUser }) {
                 <h3>Settings</h3>
                 <div className="">
                   <div style={{ marginTop: 10, marginBottom: 10 }}>
-                    Slack Username
+                    Display Name
                   </div>
                   <Form>
                     <Form.Group className="mb-3" controlId="formBasicEmail">
@@ -229,22 +240,34 @@ export default function StravaPage({ sessionData, googleUser }) {
                           type="text"
                           onChange={handleTextChange}
                           style={{ marginRight: 10 }}
-                          placeholder="@username"
+                          placeholder="Enter a Display Name"
                           defaultValue={slackUsername}
                         />
+                        {slackUsername !== "" && (
+                          <Button
+                            className="me-1"
+                            variant="danger"
+                            disabled={isSavingUser}
+                            onClick={removeUsername}
+                          >
+                            Remove
+                          </Button>
+                        )}
 
                         <Button
                           variant="primary"
                           disabled={isSavingUser}
-                          onClick={updateSlack}
+                          onClick={updateUsername}
                         >
                           Save
                         </Button>
                       </div>
 
-                      <Form.Text className="text-muted mt-2">
-                        When we share your post, it will mention you by
-                        username, not by full name.
+                      <Form.Text className="text-muted mt-3 d-block">
+                        When we share an activity, we will use your name defined
+                        by your Strava account ({sessionData.user.name}). If you
+                        want to display something different, please add a value
+                        above.
                       </Form.Text>
                     </Form.Group>
                   </Form>

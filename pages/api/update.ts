@@ -16,7 +16,14 @@ export default async function handler(
       if (req.body) {
         let response, updateField;
 
-        if (req.body.postActivity) {
+        if (req.body.removeSlackUsername) {
+          response = await updateUser({
+            accountId,
+            removeSlackUsername: true,
+          });
+
+          updateField = "removeSlackUsername";
+        } else if (req.body.postActivity) {
           response = await updateUser({
             accountId,
             postActivity: req.body?.postActivity,

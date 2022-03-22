@@ -88,6 +88,7 @@ export interface UserUpdateProps {
   postActivity?: number;
   mapOnly?: number;
   slackUsername?: string;
+  removeSlackUsername?: boolean;
 }
 
 export interface FullStravaUser extends GoogleProps {
