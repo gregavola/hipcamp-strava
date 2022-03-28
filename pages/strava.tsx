@@ -19,15 +19,18 @@ import {
   ActivityStats,
   FullStravaUser,
   GoogleProps,
+  LeaderboardResponse,
+  LeaderboardUsers,
   Workout,
 } from "../utils/types";
 import { addGoogleUser } from "../utils/crudAuth";
 import { getGoogleUser } from "../utils/getGoogleUser";
-import { getAPIActivities } from "../utils/http";
+import { getAPIActivities, getAPILeaderboard } from "../utils/http";
 import WorkoutCard from "../components/WorkoutCard";
 import { parseISO, format } from "date-fns";
 import StatsGrid from "../components/StatsGrid";
 import { updateUser } from "../utils/updateUser";
+import UserCard from "../components/UserCard";
 
 export default function StravaPage({ sessionData, googleUser }) {
   const router = useRouter();
@@ -40,7 +43,14 @@ export default function StravaPage({ sessionData, googleUser }) {
     workouts: [],
     stats: null,
   });
+  const [leaderboardStats, setLeaderboardStats] = useState<LeaderboardResponse>(
+    {
+      users: [],
+    }
+  );
   const [isLoadingActivityStats, setIsLoadingActivityStats] = useState(true);
+  const [isLoadingLeaderboardStats, setIsLoadingLeaderboardStats] =
+    useState(true);
   const [isSavingUser, setIsSavingUser] = useState(false);
   const [isError, setIsError] = useState(null);
 
@@ -62,6 +72,7 @@ export default function StravaPage({ sessionData, googleUser }) {
       setSlackUsername(googleUserData.slackUsername || "");
       setHasStavaConnected(googleUserData.accessToken ? true : false);
       getActivites();
+      getLeaderboard();
     }
   }, []);
 
@@ -127,6 +138,16 @@ export default function StravaPage({ sessionData, googleUser }) {
       const data = await getAPIActivities();
       setIsLoadingActivityStats(false);
       setActivityStats(data);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const getLeaderboard = async () => {
+    try {
+      const data = await getAPILeaderboard();
+      setIsLoadingLeaderboardStats(false);
+      setLeaderboardStats(data);
     } catch (err) {
       console.error(err);
     }
@@ -349,6 +370,40 @@ export default function StravaPage({ sessionData, googleUser }) {
                         title={"Last 30 Days"}
                       />
                     </>
+                  )}
+              </div>
+
+              <hr />
+              <div className="mt-3">
+                <h3>Leaderboard</h3>
+                {isLoadingLeaderboardStats && (
+                  <div className="d-flex justify-content-center">
+                    <Spinner animation="border" />
+                  </div>
+                )}
+
+                {!isLoadingLeaderboardStats &&
+                  leaderboardStats?.users?.length === 0 && (
+                    <div className="d-flex justify-content-center">
+                      <strong>No leaderboard at this time!</strong>
+                    </div>
+                  )}
+
+                {!isLoadingLeaderboardStats &&
+                  leaderboardStats.users.length !== 0 && (
+                    <div className="mt-3">
+                      <div className="mb-3 text-muted">
+                        This leaderboard shows the top users based on distance,
+                        in the last 30 days.
+                      </div>
+                      {leaderboardStats.users.map(
+                        (item: LeaderboardUsers, keyIndex: number) => {
+                          return (
+                            <UserCard user={item} key={`user-${keyIndex}`} />
+                          );
+                        }
+                      )}
+                    </div>
                   )}
               </div>
 

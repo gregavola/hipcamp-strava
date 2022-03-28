@@ -20,6 +20,10 @@ export interface ActivityStats {
   };
 }
 
+export interface LeaderboardResponse {
+  users: LeaderboardUsers[];
+}
+
 export interface Workout {
   activityId: number;
   created_at: string;

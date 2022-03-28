@@ -64,7 +64,7 @@ export default async function handler(
 
           res.json(jsonResponse);
         } else {
-          res.json({ status: 200, workouts: shappedWorkouts });
+          res.json({ users: shappedWorkouts });
         }
       } else {
         res.status(500).json({ error: `Could not find user ${accountId}` });

@@ -21,7 +21,10 @@ export default NextAuth({
   },
   callbacks: {
     async signIn({ user, account, profile, email, credentials }) {
-      if (user.email.indexOf("@hipcamp") == -1) {
+      if (
+        user.email.indexOf("@hipcamp") == -1 &&
+        user.email !== "gregory.avola@gmail.com"
+      ) {
         return `${process.env.NEXTAUTH_URL}?hipcamp=false`;
       } else {
         return true;
